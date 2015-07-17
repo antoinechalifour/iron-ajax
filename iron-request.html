@@ -63,7 +63,6 @@ iron-request can be used to perform XMLHttpRequests.
        * A reference to the status code, if the `xhr` has completely resolved.
        *
        * @attribute status
-       * @type short
        * @default 0
        */
       status: {
@@ -77,7 +76,6 @@ iron-request can be used to perform XMLHttpRequests.
        * A reference to the status text, if the `xhr` has completely resolved.
        *
        * @attribute statusText
-       * @type String
        * @default ""
        */
       statusText: {
@@ -235,7 +233,11 @@ iron-request can be used to perform XMLHttpRequests.
       if (options.headers) {
         contentType = options.headers['Content-Type'];
       }
-      var body = this._encodeBodyObject(options.body, contentType);
+      var body = options.body;
+      var encodedBody = this._encodeBodyObject(options.body, contentType);
+      if (encodedBody) {
+        body = encodedBody;
+      }
 
 
       // In IE, `xhr.responseType` is an empty string when the response
@@ -245,7 +247,9 @@ iron-request can be used to perform XMLHttpRequests.
 
 
 
-      xhr.send(body);
+      xhr.send(
+        /** @type {ArrayBuffer|ArrayBufferView|Blob|Document|FormData|null|string|undefined} */
+        (body));
 
       return this.completes;
     },
@@ -275,7 +279,7 @@ iron-request can be used to perform XMLHttpRequests.
               // If accessing `xhr.responseText` throws, responseType `json`
               // is supported and the result is rightly `undefined`.
               try {
-                xhr.responseText;
+                /** @suppress {suspiciousCode} */ xhr.responseText;
               } catch (e) {
                 return xhr.response;
               }
@@ -314,20 +318,21 @@ iron-request can be used to perform XMLHttpRequests.
      * @param {*} body The given body of the request to try and encode.
      * @param {?string} contentType The given content type, to infer an encoding
      *     from.
-     * @return {?string|*} Either the encoded body as a string, if successful,
-     *     or the unaltered body object if no encoding could be inferred.
+     * @return {?string} Either the encoded body as a string, if successful,
+     *     or null, if unsuccessful.
      */
     _encodeBodyObject: function(body, contentType) {
       if (typeof body == 'string') {
         return body;  // Already encoded.
       }
+      var bodyObj = /** @type {Object} */ (body);
       switch(contentType) {
         case('application/json'):
-          return JSON.stringify(body);
+          return JSON.stringify(bodyObj);
         case('application/x-www-form-urlencoded'):
-          return this._wwwFormUrlEncode(body);
+          return this._wwwFormUrlEncode(bodyObj);
       }
-      return body;  // Unknown, make no change.
+      return null;
     },
 
     /**
@@ -369,4 +374,3 @@ iron-request can be used to perform XMLHttpRequests.
     }
   });
 </script>
-
