@@ -233,12 +233,7 @@ iron-request can be used to perform XMLHttpRequests.
       if (options.headers) {
         contentType = options.headers['Content-Type'];
       }
-      var body = options.body;
-      var encodedBody = this._encodeBodyObject(options.body, contentType);
-      if (encodedBody) {
-        body = encodedBody;
-      }
-
+      var body = this._encodeBodyObject(options.body, contentType);
 
       // In IE, `xhr.responseType` is an empty string when the response
       // returns. Hence, caching it as `xhr._responseType`.
@@ -319,8 +314,8 @@ iron-request can be used to perform XMLHttpRequests.
      * @param {*} body The given body of the request to try and encode.
      * @param {?string} contentType The given content type, to infer an encoding
      *     from.
-     * @return {?string} Either the encoded body as a string, if successful,
-     *     or null, if unsuccessful.
+     * @return {*} Either the encoded body as a string, if successful,
+     *     or the unaltered body object if no encoding could be inferred.
      */
     _encodeBodyObject: function(body, contentType) {
       if (typeof body == 'string') {
@@ -333,7 +328,7 @@ iron-request can be used to perform XMLHttpRequests.
         case('application/x-www-form-urlencoded'):
           return this._wwwFormUrlEncode(bodyObj);
       }
-      return null;
+      return body;
     },
 
     /**
